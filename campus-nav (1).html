@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CampusWay — Navigate Your World</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --forest: #1a3a2a;
+      --moss: #2d5a3d;
+      --sage: #4d8a62;
+      --mint: #a8d5b5;
+      --cream: #f5f0e8;
+      --sand: #e8dfc8;
+      --amber: #d4a843;
+      --rust: #c96a3a;
+      --ink: #12201a;
+      --white: #fdfcfa;
+      --header-h: 60px;
+      --bottom-nav-h: 64px;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      overflow: hidden;
+    }
+
+    /* ══════════════════════════════════
+       HEADER
+    ══════════════════════════════════ */
+    header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      height: var(--header-h);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 1.25rem;
+      background: rgba(245,240,232,0.92);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(26,58,42,0.1);
+    }
+
+    .logo {
+      display: flex; align-items: center; gap: .55rem;
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.3rem; color: var(--forest); letter-spacing: -.02em;
+      text-decoration: none;
+    }
+    .logo-dot {
+      width: 9px; height: 9px; background: var(--amber);
+      border-radius: 50%;
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { transform: scale(1); }
+      50% { transform: scale(1.5); opacity:.6; }
+    }
+
+    /* Desktop nav */
+    .desktop-nav { display: flex; gap: 1.8rem; align-items: center; }
+    .desktop-nav a {
+      text-decoration: none; color: var(--forest);
+      font-size: .88rem; font-weight: 500; opacity: .65; transition: opacity .2s;
+    }
+    .desktop-nav a:hover { opacity: 1; }
+
+    .header-actions { display: flex; gap: .6rem; align-items: center; }
+
+    .header-btn {
+      background: var(--forest); color: var(--cream);
+      border: none; border-radius: 8px; padding: .45rem 1.1rem;
+      font-family: 'DM Sans', sans-serif; font-weight: 500;
+      font-size: .82rem; cursor: pointer; transition: background .2s;
+      white-space: nowrap;
+    }
+    .header-btn:hover { background: var(--moss); }
+
+    /* Hamburger — mobile only */
+    .hamburger {
+      display: none;
+      flex-direction: column; gap: 5px; cursor: pointer;
+      background: none; border: none; padding: 4px;
+    }
+    .hamburger span {
+      display: block; width: 22px; height: 2px;
+      background: var(--forest); border-radius: 2px;
+      transition: all .25s;
+    }
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    /* ══════════════════════════════════
+       APP SHELL
+    ══════════════════════════════════ */
+    .app {
+      display: flex;
+      height: 100vh;
+      padding-top: var(--header-h);
+    }
+
+    /* ══════════════════════════════════
+       SIDEBAR
+    ══════════════════════════════════ */
+    .sidebar {
+      width: 340px;
+      flex-shrink: 0;
+      background: var(--white);
+      border-right: 1px solid rgba(26,58,42,0.1);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      transition: transform .3s ease, width .3s ease;
+    }
+
+    /* Search area */
+    .search-area {
+      padding: 1.2rem 1.25rem 1.1rem;
+      background: linear-gradient(140deg, var(--forest), var(--moss));
+      flex-shrink: 0;
+    }
+    .search-label {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.15rem; color: var(--cream);
+      margin-bottom: .85rem; display: block;
+    }
+    .search-box { position: relative; margin-bottom: .6rem; }
+    .search-box input {
+      width: 100%; padding: .7rem 1rem .7rem 2.6rem;
+      border: none; border-radius: 9px;
+      background: rgba(255,255,255,0.15); color: var(--white);
+      font-family: 'DM Sans', sans-serif; font-size: .88rem;
+      transition: background .2s;
+    }
+    .search-box input::placeholder { color: rgba(255,255,255,.5); }
+    .search-box input:focus { outline: none; background: rgba(255,255,255,.22); }
+    .search-icon {
+      position: absolute; left: .8rem; top: 50%; transform: translateY(-50%);
+      pointer-events: none; opacity: .6; font-size: .95rem;
+    }
+    .route-row { display: flex; gap: .45rem; }
+    .route-input {
+      flex: 1; min-width: 0;
+      padding: .6rem .8rem; border: none; border-radius: 8px;
+      background: rgba(255,255,255,0.12); color: var(--white);
+      font-family: 'DM Sans', sans-serif; font-size: .82rem;
+    }
+    .route-input::placeholder { color: rgba(255,255,255,.45); }
+    .route-input:focus { outline: none; background: rgba(255,255,255,.2); }
+    .go-btn {
+      background: var(--amber); color: var(--ink);
+      border: none; border-radius: 8px; padding: .6rem 1rem;
+      font-weight: 600; font-size: .82rem; cursor: pointer;
+      transition: transform .15s, box-shadow .15s; white-space: nowrap;
+    }
+    .go-btn:hover { transform: scale(1.04); box-shadow: 0 4px 12px rgba(212,168,67,.4); }
+
+    /* Chips */
+    .chip-row {
+      padding: .75rem 1.25rem; display: flex; gap: .4rem;
+      overflow-x: auto; flex-shrink: 0;
+      border-bottom: 1px solid rgba(26,58,42,0.08);
+      scrollbar-width: none;
+    }
+    .chip-row::-webkit-scrollbar { display: none; }
+    .chip {
+      padding: .32rem .78rem; border-radius: 20px; white-space: nowrap;
+      font-size: .76rem; font-weight: 500; cursor: pointer;
+      border: 1.5px solid transparent; transition: all .18s; flex-shrink: 0;
+    }
+    .chip.active { background: var(--forest); color: var(--cream); border-color: var(--forest); }
+    .chip:not(.active) { background: var(--sand); color: var(--forest); border-color: var(--sand); }
+    .chip:not(.active):hover { border-color: var(--forest); }
+
+    /* Places */
+    .places-list { flex: 1; overflow-y: auto; padding: .85rem 1.25rem; }
+    .places-list::-webkit-scrollbar { width: 3px; }
+    .places-list::-webkit-scrollbar-thumb { background: var(--mint); border-radius: 3px; }
+
+    .section-title {
+      font-size: .68rem; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--sage);
+      margin-bottom: .6rem; margin-top: .4rem;
+    }
+    .place-card {
+      display: flex; align-items: center; gap: .8rem;
+      padding: .75rem; border-radius: 11px; cursor: pointer;
+      margin-bottom: .45rem; border: 1.5px solid transparent;
+      transition: background .18s, transform .18s;
+    }
+    .place-card:hover { background: var(--cream); transform: translateX(3px); }
+    .place-card.selected { background: var(--cream); border-color: var(--sage); }
+
+    .place-icon {
+      width: 40px; height: 40px; border-radius: 9px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+    }
+    .icon-lecture { background: #ddf0e4; }
+    .icon-food    { background: #fdefd8; }
+    .icon-lib     { background: #e8e4f5; }
+    .icon-sport   { background: #fde4e4; }
+    .icon-admin   { background: #e4eef5; }
+    .icon-health  { background: #fde4f0; }
+
+    .place-info { flex: 1; min-width: 0; }
+    .place-name { font-weight: 600; font-size: .88rem; color: var(--ink); margin-bottom: .1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .place-meta { font-size: .73rem; color: #7a9086; display: flex; gap: .4rem; flex-wrap: wrap; }
+    .status-open  { color: #3d9e5f; font-weight: 600; }
+    .status-closed{ color: var(--rust); font-weight: 600; }
+    .place-dist {
+      font-size: .72rem; font-weight: 600; color: var(--forest);
+      background: var(--mint); padding: .18rem .5rem; border-radius: 20px; white-space: nowrap;
+    }
+
+    /* ══════════════════════════════════
+       MAP
+    ══════════════════════════════════ */
+    .map-area {
+      flex: 1; position: relative; overflow: hidden;
+      background: #c8dfc8;
+    }
+    .campus-bg {
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg,#c0d8c0,#d4e8d8 50%,#bcd4bc);
+    }
+    .path {
+      position: absolute; background: rgba(255,255,255,.55); border-radius: 3px;
+    }
+    .green {
+      position: absolute; border-radius: 50%;
+      background: radial-gradient(circle,#5a9e5a,#3a7a3a 70%); opacity: .4;
+    }
+    .building {
+      position: absolute; border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .58rem; font-weight: 700; letter-spacing: .03em;
+      text-align: center; cursor: pointer;
+      box-shadow: 3px 5px 12px rgba(0,0,0,.18);
+      transition: transform .2s, box-shadow .2s;
+      animation: fadeUp .6s ease forwards; opacity: 0;
+    }
+    .building:hover { transform: scale(1.06) translateY(-2px); box-shadow: 4px 8px 20px rgba(0,0,0,.25); z-index: 10; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+    .b-lecture { background:#eae6d5;color:#4a3f1e;border:2px solid #c8b87a; }
+    .b-library  { background:#dce0ec;color:#2a3060;border:2px solid #8a93c8; }
+    .b-food     { background:#f5e8d8;color:#6a3a10;border:2px solid #d4a060; }
+    .b-sport    { background:#e0f0e0;color:#1a4a20;border:2px solid #70b070; }
+    .b-admin    { background:#e0ecf4;color:#1a3050;border:2px solid #70a0c8; }
+    .b-health   { background:#f5e0ec;color:#60104a;border:2px solid #c870a8; }
+    .b-dorm     { background:#ece8f0;color:#3a2a60;border:2px solid #9888c0; }
+
+    .route-svg { position:absolute;inset:0;pointer-events:none;z-index:5; }
+
+    .pin {
+      position:absolute; transform:translate(-50%,-100%);
+      cursor:pointer; z-index:15; transition:transform .2s;
+    }
+    .pin:hover { transform:translate(-50%,-100%) scale(1.2); }
+    .pin-body {
+      width:28px;height:28px;border-radius:50% 50% 50% 0;rotate:-45deg;
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 3px 8px rgba(0,0,0,.22);
+    }
+    .pin-inner { rotate:45deg; font-size:.85rem; }
+
+    /* Map overlays */
+    .map-controls {
+      position:absolute;right:1rem;top:1rem;
+      display:flex;flex-direction:column;gap:.4rem;z-index:20;
+    }
+    .map-btn {
+      width:38px;height:38px;background:var(--white);border:none;border-radius:9px;
+      box-shadow:0 2px 8px rgba(0,0,0,.12);font-size:.95rem;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      transition:background .18s,transform .15s;color:var(--forest);
+    }
+    .map-btn:hover { background:var(--cream);transform:scale(1.08); }
+
+    .compass {
+      position:absolute;right:1rem;bottom:8rem;z-index:20;
+      width:44px;height:44px;background:var(--white);border-radius:50%;
+      box-shadow:0 2px 10px rgba(0,0,0,.12);
+      display:flex;align-items:center;justify-content:center;font-size:1.2rem;
+      animation:compassSpin 40s linear infinite;
+    }
+    @keyframes compassSpin { to { transform:rotate(360deg); } }
+
+    .weather-strip {
+      position:absolute;top:1rem;left:1rem;z-index:20;
+      background:rgba(253,252,250,.9);border-radius:9px;padding:.45rem .85rem;
+      backdrop-filter:blur(8px);box-shadow:0 2px 8px rgba(0,0,0,.1);
+      font-size:.76rem;color:var(--forest);font-weight:500;
+      display:flex;align-items:center;gap:.4rem;
+    }
+
+    .toast {
+      position:absolute;top:.85rem;left:50%;transform:translateX(-50%);
+      background:var(--forest);color:var(--cream);border-radius:9px;
+      padding:.6rem 1.2rem;font-size:.82rem;font-weight:500;
+      box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:50;
+      display:flex;align-items:center;gap:.45rem;white-space:nowrap;
+      animation:toastIn .4s ease;
+    }
+    @keyframes toastIn { from{opacity:0;transform:translateX(-50%) translateY(-10px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+    .toast-dot { width:7px;height:7px;background:var(--mint);border-radius:50%;flex-shrink:0; }
+
+    .map-legend {
+      position:absolute;left:1rem;bottom:1rem;z-index:20;
+      background:rgba(253,252,250,.92);border-radius:11px;
+      padding:.8rem 1rem;backdrop-filter:blur(8px);
+      box-shadow:0 2px 10px rgba(0,0,0,.1);
+    }
+    .legend-title {
+      font-size:.66rem;font-weight:700;letter-spacing:.06em;
+      text-transform:uppercase;color:var(--sage);margin-bottom:.5rem;
+    }
+    .legend-item { display:flex;align-items:center;gap:.45rem;font-size:.73rem;color:var(--ink);margin-bottom:.25rem; }
+    .legend-dot { width:11px;height:11px;border-radius:3px;flex-shrink:0; }
+
+    /* Info panel — bottom of map */
+    .info-panel {
+      position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);
+      background:var(--white);border-radius:16px;
+      padding:1rem 1.4rem;
+      box-shadow:0 8px 32px rgba(0,0,0,.15);
+      display:flex;align-items:center;gap:1rem;z-index:20;
+      animation:floatUp .4s ease;
+      max-width: calc(100% - 2rem);
+      width: max-content;
+    }
+    @keyframes floatUp { from{opacity:0;transform:translateX(-50%) translateY(18px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+    .info-icon {
+      width:48px;height:48px;border-radius:12px;background:var(--forest);color:var(--cream);
+      display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;
+    }
+    .info-text .info-name {
+      font-family:'DM Serif Display',serif;font-size:1rem;color:var(--ink);margin-bottom:.15rem;
+    }
+    .info-text .info-sub { font-size:.76rem;color:#7a9086; }
+    .info-actions { display:flex;gap:.5rem;margin-left:.5rem; }
+    .action-btn {
+      padding:.5rem .9rem;border-radius:8px;font-size:.8rem;font-weight:600;
+      cursor:pointer;border:none;transition:all .18s;white-space:nowrap;
+    }
+    .action-btn.primary { background:var(--forest);color:var(--cream); }
+    .action-btn.primary:hover { background:var(--moss); }
+    .action-btn.secondary { background:var(--sand);color:var(--forest); }
+    .action-btn.secondary:hover { background:var(--mint); }
+
+    /* ══════════════════════════════════
+       BOTTOM NAV — mobile only
+    ══════════════════════════════════ */
+    .bottom-nav {
+      display: none;
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+      height: var(--bottom-nav-h);
+      background: var(--white);
+      border-top: 1px solid rgba(26,58,42,0.1);
+      justify-content: space-around; align-items: center;
+      padding: 0 .5rem;
+    }
+    .bnav-item {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      cursor: pointer; padding: .4rem .6rem; border-radius: 10px;
+      transition: background .18s; flex: 1;
+      background: none; border: none; font-family: 'DM Sans', sans-serif;
+    }
+    .bnav-item.active { background: var(--cream); }
+    .bnav-icon { font-size: 1.25rem; }
+    .bnav-label { font-size: .65rem; font-weight: 500; color: var(--forest); opacity: .65; }
+    .bnav-item.active .bnav-label { opacity: 1; font-weight: 600; }
+
+    /* ══════════════════════════════════
+       DRAWER — mobile bottom sheet
+    ══════════════════════════════════ */
+    .drawer-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 150;
+      background: rgba(18,32,26,.35);
+      backdrop-filter: blur(2px);
+      opacity: 0; transition: opacity .3s;
+    }
+    .drawer-overlay.open { opacity: 1; }
+
+    .drawer {
+      display: none;
+      position: fixed; left: 0; right: 0; bottom: var(--bottom-nav-h); z-index: 160;
+      background: var(--white);
+      border-radius: 20px 20px 0 0;
+      max-height: 78vh;
+      transform: translateY(100%);
+      transition: transform .35s cubic-bezier(.32,.72,0,1);
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .drawer.open { transform: translateY(0); }
+    .drawer-handle {
+      width: 36px; height: 4px; background: var(--sand);
+      border-radius: 2px; margin: .7rem auto .4rem; flex-shrink: 0;
+    }
+
+    /* ══════════════════════════════════
+       TABLET SIDEBAR TOGGLE
+    ══════════════════════════════════ */
+    .sidebar-toggle {
+      display: none;
+      position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+      z-index: 30; background: var(--white); border: 1px solid rgba(26,58,42,.12);
+      border-left: none; border-radius: 0 8px 8px 0;
+      width: 22px; height: 48px; cursor: pointer;
+      align-items: center; justify-content: center;
+      font-size: .8rem; color: var(--forest); transition: background .18s;
+    }
+    .sidebar-toggle:hover { background: var(--cream); }
+
+    /* ══════════════════════════════════
+       RESPONSIVE BREAKPOINTS
+    ══════════════════════════════════ */
+
+    /* Tablet: 768px – 1024px */
+    @media (max-width: 1024px) {
+      .sidebar { width: 300px; }
+      .desktop-nav { display: none; }
+      .hamburger { display: flex; }
+      .sidebar-toggle { display: flex; }
+    }
+
+    /* Tablet collapsed sidebar */
+    @media (max-width: 1024px) {
+      .sidebar.collapsed {
+        width: 0;
+        border-right: none;
+      }
+      .sidebar.collapsed .sidebar-toggle { left: 0; }
+    }
+
+    /* Mobile: < 768px */
+    @media (max-width: 767px) {
+      :root { --header-h: 56px; }
+
+      .app { padding-bottom: var(--bottom-nav-h); }
+
+      .sidebar { display: none !important; }
+      .sidebar-toggle { display: none !important; }
+      .header-btn { display: none; }
+      .hamburger { display: none; }
+
+      .bottom-nav { display: flex; }
+      .drawer { display: flex; }
+      .drawer-overlay { display: block; }
+
+      /* Map overlays adjust for mobile */
+      .map-legend { display: none; }
+      .compass { bottom: calc(var(--bottom-nav-h) + 1rem); right: .75rem; width: 38px; height: 38px; font-size: 1rem; }
+      .map-controls { right: .75rem; top: .75rem; }
+      .map-btn { width: 34px; height: 34px; font-size: .85rem; }
+
+      .weather-strip { top: .75rem; left: .75rem; font-size: .72rem; padding: .38rem .7rem; }
+
+      .toast {
+        top: .65rem; font-size: .76rem; padding: .5rem 1rem;
+        max-width: calc(100% - 120px);
+        white-space: normal; text-align: center;
+      }
+
+      .info-panel {
+        bottom: calc(var(--bottom-nav-h) + .75rem);
+        padding: .85rem 1rem;
+        flex-wrap: wrap; gap: .75rem;
+        width: calc(100% - 1.5rem);
+        max-width: 420px;
+      }
+      .info-actions { width: 100%; justify-content: flex-end; margin-left: 0; }
+    }
+
+    /* Very small screens */
+    @media (max-width: 380px) {
+      .info-panel { padding: .75rem; }
+      .info-icon { width: 40px; height: 40px; font-size: 1.2rem; }
+      .info-text .info-name { font-size: .9rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── HEADER ── -->
+  <header>
+    <a class="logo" href="#">
+      <div class="logo-dot"></div>
+      CampusWay
+    </a>
+    <nav class="desktop-nav">
+      <a href="#">Map</a>
+      <a href="#">Events</a>
+      <a href="#">Schedule</a>
+      <a href="#">Alerts</a>
+    </nav>
+    <div class="header-actions">
+      <button class="header-btn">My Account</button>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <div class="app">
+
+    <!-- ── SIDEBAR ── -->
+    <aside class="sidebar" id="sidebar">
+      <!-- tablet toggle -->
+      <button class="sidebar-toggle" id="sidebarToggle" title="Collapse">‹</button>
+
+      <div class="search-area">
+        <span class="search-label">Find a place</span>
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Search buildings, rooms, services…" />
+        </div>
+        <div class="route-row">
+          <input type="text" class="route-input" placeholder="From: My location" />
+          <input type="text" class="route-input" placeholder="To:" />
+          <button class="go-btn">Go →</button>
+        </div>
+      </div>
+
+      <div class="chip-row" id="chipRow">
+        <div class="chip active" data-cat="all">All</div>
+        <div class="chip" data-cat="academic">🎓 Academic</div>
+        <div class="chip" data-cat="food">🍽 Food</div>
+        <div class="chip" data-cat="library">📚 Library</div>
+        <div class="chip" data-cat="sports">⚽ Sports</div>
+        <div class="chip" data-cat="health">🏥 Health</div>
+      </div>
+
+      <div class="places-list" id="placesList">
+        <!-- populated by JS -->
+      </div>
+    </aside>
+
+    <!-- ── MAP ── -->
+    <main class="map-area" id="mapArea">
+      <div class="campus-bg"></div>
+
+      <!-- Paths -->
+      <div class="path" style="left:20%;top:30%;width:60%;height:9px;transform:rotate(8deg)"></div>
+      <div class="path" style="left:35%;top:15%;width:9px;height:65%"></div>
+      <div class="path" style="left:55%;top:20%;width:9px;height:55%"></div>
+      <div class="path" style="left:20%;top:55%;width:62%;height:9px;transform:rotate(-3deg)"></div>
+      <div class="path" style="left:68%;top:35%;width:9px;height:40%"></div>
+      <div class="path" style="left:20%;top:70%;width:40%;height:9px"></div>
+
+      <!-- Greenery -->
+      <div class="green" style="width:120px;height:120px;left:10%;top:10%"></div>
+      <div class="green" style="width:80px;height:80px;left:75%;top:60%"></div>
+      <div class="green" style="width:100px;height:100px;left:60%;top:5%"></div>
+      <div class="green" style="width:60px;height:60px;left:5%;top:65%"></div>
+      <div class="green" style="width:90px;height:90px;left:80%;top:12%"></div>
+
+      <!-- Buildings -->
+      <div class="building b-lecture" style="left:30%;top:18%;width:105px;height:70px;animation-delay:.1s">🎓<br>Engineering</div>
+      <div class="building b-library" style="left:52%;top:22%;width:95px;height:62px;animation-delay:.2s">📚<br>Library</div>
+      <div class="building b-food"    style="left:40%;top:42%;width:90px;height:58px;animation-delay:.3s">🍽<br>Cafeteria</div>
+      <div class="building b-admin"   style="left:60%;top:40%;width:100px;height:58px;animation-delay:.4s">🏛<br>Admin</div>
+      <div class="building b-sport"   style="left:22%;top:58%;width:105px;height:62px;animation-delay:.5s">⚽<br>Sports</div>
+      <div class="building b-health"  style="left:58%;top:60%;width:90px;height:58px;animation-delay:.6s">🏥<br>Health</div>
+      <div class="building b-dorm"    style="left:72%;top:52%;width:85px;height:62px;animation-delay:.7s">🏠<br>Hostel</div>
+      <div class="building b-lecture" style="left:30%;top:72%;width:90px;height:52px;animation-delay:.8s">🔬<br>Sciences</div>
+
+      <!-- Route -->
+      <svg class="route-svg" viewBox="0 0 800 600" preserveAspectRatio="none">
+        <defs>
+          <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="#d4a843" opacity=".9"/>
+          </marker>
+        </defs>
+        <path d="M 400 500 Q 380 450 360 420 Q 345 400 340 380 Q 335 340 340 300"
+          stroke="#d4a843" stroke-width="3.5" fill="none" stroke-dasharray="8 4"
+          marker-end="url(#arrow)" opacity=".8"/>
+      </svg>
+
+      <!-- Pins -->
+      <div class="pin" style="left:50%;top:85%">
+        <div class="pin-body" style="background:#d4a843"><span class="pin-inner">📍</span></div>
+      </div>
+      <div class="pin" style="left:38%;top:24%">
+        <div class="pin-body" style="background:#1a3a2a"><span class="pin-inner" style="font-size:.7rem">🎯</span></div>
+      </div>
+
+      <!-- Overlays -->
+      <div class="toast"><div class="toast-dot"></div>Route found: Engineering · 4 min · 320m</div>
+      <div class="weather-strip">☀️ 31°C · Clear</div>
+
+      <div class="map-controls">
+        <button class="map-btn" title="Zoom in">＋</button>
+        <button class="map-btn" title="Zoom out">－</button>
+        <button class="map-btn" title="My location">◎</button>
+        <button class="map-btn" title="Layers">⊞</button>
+      </div>
+
+      <div class="compass">🧭</div>
+
+      <div class="map-legend">
+        <div class="legend-title">Map Key</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#eae6d5;border:1.5px solid #c8b87a"></div>Academic</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f5e8d8;border:1.5px solid #d4a060"></div>Dining</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#dce0ec;border:1.5px solid #8a93c8"></div>Library</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#e0f0e0;border:1.5px solid #70b070"></div>Sports</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f5e0ec;border:1.5px solid #c870a8"></div>Health</div>
+      </div>
+
+      <div class="info-panel" id="infoPanel">
+        <div class="info-icon" id="infoPanelIcon">🎓</div>
+        <div class="info-text">
+          <div class="info-name" id="infoPanelName">Faculty of Engineering</div>
+          <div class="info-sub" id="infoPanelSub">Open · Hall A, B, C · Wheelchair accessible · 120m</div>
+        </div>
+        <div class="info-actions">
+          <button class="action-btn secondary">Details</button>
+          <button class="action-btn primary">Navigate →</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ── MOBILE BOTTOM NAV ── -->
+  <nav class="bottom-nav">
+    <button class="bnav-item active" id="bnav-map">
+      <span class="bnav-icon">🗺️</span>
+      <span class="bnav-label">Map</span>
+    </button>
+    <button class="bnav-item" id="bnav-search" onclick="openDrawer()">
+      <span class="bnav-icon">🔍</span>
+      <span class="bnav-label">Search</span>
+    </button>
+    <button class="bnav-item" id="bnav-events">
+      <span class="bnav-icon">📅</span>
+      <span class="bnav-label">Events</span>
+    </button>
+    <button class="bnav-item" id="bnav-me">
+      <span class="bnav-icon">👤</span>
+      <span class="bnav-label">Me</span>
+    </button>
+  </nav>
+
+  <!-- ── MOBILE DRAWER ── -->
+  <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+  <div class="drawer" id="drawer">
+    <div class="drawer-handle"></div>
+
+    <div class="search-area" style="border-radius:0">
+      <span class="search-label">Find a place</span>
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Search buildings, rooms, services…" autofocus />
+      </div>
+      <div class="route-row">
+        <input type="text" class="route-input" placeholder="From: My location" />
+        <input type="text" class="route-input" placeholder="To:" />
+        <button class="go-btn">Go →</button>
+      </div>
+    </div>
+
+    <div class="chip-row" id="drawerChipRow">
+      <div class="chip active" data-cat="all">All</div>
+      <div class="chip" data-cat="academic">🎓 Academic</div>
+      <div class="chip" data-cat="food">🍽 Food</div>
+      <div class="chip" data-cat="library">📚 Library</div>
+      <div class="chip" data-cat="sports">⚽ Sports</div>
+      <div class="chip" data-cat="health">🏥 Health</div>
+    </div>
+
+    <div class="places-list" id="drawerPlacesList"></div>
+  </div>
+
+  <script>
+    /* ── DATA ── */
+    const places = [
+      { name:'Faculty of Engineering', meta:'Lecture Hall A, B, C · Wheelchair', status:'Open', dist:'120m', icon:'🎓', cat:'academic', sub:'Open · Hall A, B, C · Wheelchair accessible · 120m' },
+      { name:'Student Union Café',     meta:'Coffee & Snacks',                   status:'Open', dist:'190m', icon:'☕', cat:'food',     sub:'Open · Coffee & Snacks · 190m' },
+      { name:'Main Cafeteria',         meta:'Closes 8 PM',                       status:'Open', dist:'210m', icon:'🍽', cat:'food',     sub:'Open · Closes 8 PM · 210m' },
+      { name:'Central Library',        meta:'3 floors · Study rooms · WiFi',     status:'Open', dist:'340m', icon:'📚', cat:'library',  sub:'Open · 3 floors · Study rooms · 340m' },
+      { name:'Health Centre',          meta:'Emergency 24/7 · Pharmacy',         status:'Open', dist:'450m', icon:'🏥', cat:'health',   sub:'Open · Emergency 24/7 · Pharmacy · 450m' },
+      { name:'Sciences Complex',       meta:'Labs & Research',                   status:'Open', dist:'580m', icon:'🔬', cat:'academic', sub:'Open · Labs & Research · 580m' },
+      { name:'Admin Building',         meta:'Registrar & Finance',               status:'Open', dist:'670m', icon:'🏛', cat:'academic', sub:'Open · Registrar & Finance · 670m' },
+      { name:'Sports Complex',         meta:'Opens 6 AM · Pool & Gym',          status:'Closed',dist:'820m', icon:'⚽', cat:'sports',  sub:'Closed · Opens 6 AM · Pool · 820m' },
+    ];
+
+    const iconClassMap = { academic:'icon-lecture', food:'icon-food', library:'icon-lib', sports:'icon-sport', health:'icon-health' };
+
+    function buildList(containerId, data) {
+      const el = document.getElementById(containerId);
+      el.innerHTML = '';
+      const nearby = data.filter((_,i)=>i<4);
+      const rest   = data.filter((_,i)=>i>=4);
+
+      if(nearby.length) {
+        el.insertAdjacentHTML('beforeend','<div class="section-title">📍 Nearby</div>');
+        nearby.forEach((p,i) => el.insertAdjacentHTML('beforeend', cardHTML(p, i, i===0)));
+      }
+      if(rest.length) {
+        el.insertAdjacentHTML('beforeend','<div class="section-title" style="margin-top:.8rem">🏛 All Buildings</div>');
+        rest.forEach((p,i) => el.insertAdjacentHTML('beforeend', cardHTML(p, i+4, false)));
+      }
+
+      el.querySelectorAll('.place-card').forEach(card => {
+        card.addEventListener('click', () => {
+          document.querySelectorAll('.place-card').forEach(c=>c.classList.remove('selected'));
+          card.classList.add('selected');
+          const idx = +card.dataset.idx;
+          const p = data[idx];
+          document.getElementById('infoPanelIcon').textContent = p.icon;
+          document.getElementById('infoPanelName').textContent = p.name;
+          document.getElementById('infoPanelSub').textContent  = p.sub;
+          if(window.innerWidth < 768) closeDrawer();
+        });
+      });
+    }
+
+    function cardHTML(p, idx, selected) {
+      return `<div class="place-card ${selected?'selected':''}" data-idx="${idx}">
+        <div class="place-icon ${iconClassMap[p.cat]||'icon-lecture'}">${p.icon}</div>
+        <div class="place-info">
+          <div class="place-name">${p.name}</div>
+          <div class="place-meta">
+            <span class="${p.status==='Open'?'status-open':'status-closed'}">${p.status}</span>
+            <span>· ${p.meta}</span>
+          </div>
+        </div>
+        <div class="place-dist">${p.dist}</div>
+      </div>`;
+    }
+
+    buildList('placesList', places);
+    buildList('drawerPlacesList', places);
+
+    /* ── CHIP FILTER ── */
+    function setupChips(rowId, listId) {
+      document.getElementById(rowId).querySelectorAll('.chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.getElementById(rowId).querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+          chip.classList.add('active');
+          const cat = chip.dataset.cat;
+          const filtered = cat === 'all' ? places : places.filter(p=>p.cat===cat);
+          buildList(listId, filtered);
+        });
+      });
+    }
+    setupChips('chipRow','placesList');
+    setupChips('drawerChipRow','drawerPlacesList');
+
+    /* ── DRAWER ── */
+    function openDrawer() {
+      document.getElementById('drawer').classList.add('open');
+      document.getElementById('drawerOverlay').classList.add('open');
+      document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
+      document.getElementById('bnav-search').classList.add('active');
+    }
+    function closeDrawer() {
+      document.getElementById('drawer').classList.remove('open');
+      document.getElementById('drawerOverlay').classList.remove('open');
+      document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
+      document.getElementById('bnav-map').classList.add('active');
+    }
+
+    /* ── BOTTOM NAV ── */
+    document.querySelectorAll('.bnav-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+    document.getElementById('bnav-map').addEventListener('click', closeDrawer);
+
+    /* ── TABLET SIDEBAR TOGGLE ── */
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('sidebarToggle');
+    toggleBtn && toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+      toggleBtn.textContent = sidebar.classList.contains('collapsed') ? '›' : '‹';
+    });
+
+    /* ── HAMBURGER (tablet) ── */
+    document.getElementById('hamburger').addEventListener('click', function() {
+      this.classList.toggle('open');
+      sidebar.classList.toggle('collapsed');
+    });
+
+    /* ── BUILDING CLICK ── */
+    document.querySelectorAll('.building').forEach(b => {
+      b.addEventListener('click', () => {
+        const txt = b.innerText.trim().split('\n').filter(Boolean);
+        document.getElementById('infoPanelName').textContent = txt[txt.length-1] || txt[0];
+        document.getElementById('infoPanelSub').textContent = 'Tap Navigate for walking directions';
+        document.getElementById('infoPanelIcon').textContent = txt[0];
+      });
+    });
+  </script>
+</body>
+</html>
